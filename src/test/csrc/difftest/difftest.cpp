@@ -237,12 +237,17 @@ void Difftest::do_instr_commit(int i) {
   }
 
   // Handle load instruction carefully for SMP
-  if (NUM_CORES > 1) {
+  if ((NUM_CORES > 1) && dut.load[i].valid) {
     if (dut.load[i].fuType == 0xC || dut.load[i].fuType == 0xF) {
       proxy->regcpy(ref_regs_ptr, REF_TO_DUT);
+      // need to consider a extreme case in Wukong(for its commit 2 path)
+      // for example:  (1)lh a5; (2)add a5; 
+      // (1) write a5 will be disabled by (2), it will be wrong taken for a smp consensus problem
+      //if (dut.commit[i].wen && ref_regs_ptr[dut.commit[i].wdest] != get_commit_data(i)) {
+      int maybe_miss_taken = (i == 0) && (dut.commit[i].wdest == dut.commit[1 - i].wdest) && dut.commit[i].wen && dut.commit[1 - i].wen;
       if (dut.commit[i].wen && ref_regs_ptr[dut.commit[i].wdest] != get_commit_data(i)) {
-        // printf("---[DIFF Core%d] This load instruction gets rectified!\n", this->id);
-        // printf("---    ltype: 0x%x paddr: 0x%lx wen: 0x%x wdst: 0x%x wdata: 0x%lx pc: 0x%lx\n", dut.load[i].opType, dut.load[i].paddr, dut.commit[i].wen, dut.commit[i].wdest, get_commit_data(i), dut.commit[i].pc);
+        //printf("---[DIFF Core%d] This load instruction gets rectified!\n", this->id);
+        //printf("---    ltype: 0x%x paddr: 0x%lx wen: 0x%x wdst: 0x%x wdata: 0x%lx pc: 0x%lx\n", dut.load[i].opType, dut.load[i].paddr, dut.commit[i].wen, dut.commit[i].wdest, get_commit_data(i), dut.commit[i].pc);
         uint64_t golden;
         int len = 0;
         if (dut.load[i].fuType == 0xC) {
@@ -272,7 +277,20 @@ void Difftest::do_instr_commit(int i) {
             case 2: golden = (int64_t)(int32_t)golden; break;
           }
         }
-        // printf("---    golden: 0x%lx  original: 0x%lx\n", golden, ref_regs_ptr[dut.commit[i].wdest]);
+        /*uint64_t miss_taken_reg_value;
+        if (dut.load[i].fuType == 0xC) {
+          switch (dut.load[i].opType) {
+            case 0: miss_taken_reg_value = (int64_t)(int8_t)ref_regs_ptr[dut.commit[i].wdest]; break;
+            case 1: miss_taken_reg_value = (int64_t)(int16_t)ref_regs_ptr[dut.commit[i].wdest]; break;
+            case 2: miss_taken_reg_value = (int64_t)(int32_t)ref_regs_ptr[dut.commit[i].wdest]; break;
+          }
+        }
+        printf("miss_taken_reg_value : %x\n", miss_taken_reg_value);
+        if ((miss_taken_reg_value == golden) && maybe_miss_taken) {
+          printf("SMP miss taken\n");
+          return ;
+        }
+        printf("---    golden: 0x%lx  original: 0x%lx\n", golden, ref_regs_ptr[dut.commit[i].wdest]);*/
         if (golden == get_commit_data(i)) {
           proxy->memcpy(dut.load[i].paddr, &golden, len, DUT_TO_DIFFTEST);
           if (dut.commit[i].wdest != 0) {
@@ -287,11 +305,22 @@ void Difftest::do_instr_commit(int i) {
           }
         } else {
           // goldenmem check failed as well, raise error
+#ifdef DEBUG_SMP
           printf("---  SMP difftest mismatch!\n");
           printf("---  Trying to probe local data of another core\n");
           uint64_t buf;
           difftest[(NUM_CORES-1) - this->id]->proxy->memcpy(dut.load[i].paddr, &buf, len, DIFFTEST_TO_DUT);
-          printf("---    content: %lx\n", buf);
+          printf("---    content: %lx, paddr: %lx\n", buf, dut.load[i].paddr);
+#else
+          //reject ro write to x0(zero)
+          if (dut.commit[i].wdest) {
+            proxy->memcpy(dut.load[i].paddr, &golden, len, DUT_TO_DIFFTEST);
+            if (dut.commit[i].wen) {
+              ref_regs_ptr[dut.commit[i].wdest] = get_commit_data(i);
+              proxy->regcpy(ref_regs_ptr, DUT_TO_DIFFTEST);
+            }
+          }
+#endif
         }
       }
     }

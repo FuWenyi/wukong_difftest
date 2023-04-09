@@ -18,7 +18,7 @@
 #define __CONFIG_H
 
 #ifndef NUM_CORES
-#define NUM_CORES 1
+#define NUM_CORES 2
 #endif
 
 // -----------------------------------------------------------------------
@@ -53,6 +53,9 @@
 #ifndef DIFF_PROXY
 #define DIFF_PROXY NemuProxy
 #endif
+
+// whether to enable smp difftest
+// #define DEBUG_SMP
 
 // max commit width
 #define DIFFTEST_COMMIT_WIDTH 6
