@@ -26,7 +26,8 @@
 typedef uint64_t paddr_t;
 typedef uint64_t word_t;
 
-#define PMEM_BASE 0x80000000
+//#define PMEM_BASE 0x80000000
+#define PMEM_BASE 0x0
 #define PMEM_SIZE EMU_RAM_SIZE
 
 extern uint8_t* pmem;

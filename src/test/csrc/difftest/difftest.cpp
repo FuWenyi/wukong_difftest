@@ -277,20 +277,12 @@ void Difftest::do_instr_commit(int i) {
             case 2: golden = (int64_t)(int32_t)golden; break;
           }
         }
-        /*uint64_t miss_taken_reg_value;
-        if (dut.load[i].fuType == 0xC) {
-          switch (dut.load[i].opType) {
-            case 0: miss_taken_reg_value = (int64_t)(int8_t)ref_regs_ptr[dut.commit[i].wdest]; break;
-            case 1: miss_taken_reg_value = (int64_t)(int16_t)ref_regs_ptr[dut.commit[i].wdest]; break;
-            case 2: miss_taken_reg_value = (int64_t)(int32_t)ref_regs_ptr[dut.commit[i].wdest]; break;
-          }
-        }
-        printf("miss_taken_reg_value : %x\n", miss_taken_reg_value);
-        if ((miss_taken_reg_value == golden) && maybe_miss_taken) {
-          printf("SMP miss taken\n");
+        //printf("---    golden: 0x%lx  original: 0x%lx\n", golden, ref_regs_ptr[dut.commit[i].wdest]);
+      
+        if ((ref_regs_ptr[dut.commit[i].wdest] == golden) && maybe_miss_taken) {
+          //printf("SMP miss taken\n");
           return ;
         }
-        printf("---    golden: 0x%lx  original: 0x%lx\n", golden, ref_regs_ptr[dut.commit[i].wdest]);*/
         if (golden == get_commit_data(i)) {
           proxy->memcpy(dut.load[i].paddr, &golden, len, DUT_TO_DIFFTEST);
           if (dut.commit[i].wdest != 0) {
