@@ -112,6 +112,7 @@ INTERFACE_INT_WRITEBACK {
   RETURN_NO_NULL
   auto packet = difftest[coreid]->get_physical_reg_state();
   if (valid) {
+    //printf("Dest: %d data: %lx\n", dest, data);
     packet->gpr[dest] = data;
   }
 }

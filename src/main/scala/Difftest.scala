@@ -304,3 +304,14 @@ class UARTIO extends Bundle {
     val ch = Input(UInt(8.W))
   }
 }
+
+/*class DIFFTESTIO extends Bundle {
+  val dt_ic0 = new DiffInstrCommitIO
+  val dt_ic1 = new DiffInstrCommitIO
+  val dt_iw0 = new DiffIntWritebackIO
+  val dt_iw1 = new DiffIntWritebackIO
+  val dt_ae = new DiffArchEventIO
+  val dt_te = new DiffTrapEventIO
+  val dt_cs = new DiffCSRStateIO
+  val dt_irs = new DiffArchIntRegStateIO
+}*/

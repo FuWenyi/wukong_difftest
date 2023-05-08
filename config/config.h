@@ -26,12 +26,12 @@
 // -----------------------------------------------------------------------
 
 // emulated memory size (Byte)
-// #define EMU_RAM_SIZE (256 * 1024 * 1024UL) // 256 MB
-#define EMU_RAM_SIZE (8 * 1024 * 1024 * 1024UL) // 8 GB
+#define EMU_RAM_SIZE (256 * 1024 * 1024UL) // 256 MB
+// #define EMU_RAM_SIZE (8 * 1024 * 1024 * 1024UL) // 8 GB
 
 // first valid instruction's address, difftest starts from this instruction
 #ifndef FIRST_INST_ADDRESS
-#define FIRST_INST_ADDRESS 0x10000000
+#define FIRST_INST_ADDRESS 0x80000000
 #endif
 
 // sdcard image to be used in simulation

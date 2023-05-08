@@ -279,7 +279,9 @@ void Difftest::do_instr_commit(int i) {
         }
         //printf("---    golden: 0x%lx  original: 0x%lx\n", golden, ref_regs_ptr[dut.commit[i].wdest]);
       
-        if ((ref_regs_ptr[dut.commit[i].wdest] == golden) && maybe_miss_taken) {
+        //let go mainargs 8000875d
+        //if (((ref_regs_ptr[dut.commit[i].wdest] == golden) && maybe_miss_taken) || ((dut.load[i].paddr & 0xffffff00) == 0x80008700) || ((dut.load[i].paddr & 0xffffff00) == 0x80008800) || ((dut.load[i].paddr & 0xffffff00) == 0x80008900)) {
+        if (((ref_regs_ptr[dut.commit[i].wdest] == golden) && maybe_miss_taken)) {
           //printf("SMP miss taken\n");
           return ;
         }
