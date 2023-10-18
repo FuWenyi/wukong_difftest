@@ -35,7 +35,7 @@
 #include "remote_bitbang.h"
 
 extern remote_bitbang_t * jtag;
-
+extern bool enable_simjtag;
 
 static inline void print_help(const char *file) {
   printf("Usage: %s [OPTION...]\n", file);
@@ -160,7 +160,7 @@ inline EmuArgs parse_args(int argc, const char *argv[]) {
       case 'e': args.log_end = atoll(optarg); break;
     }
   }
-
+  
   if(args.image == NULL) {
     print_help(argv[0]);
     printf("Hint: --image=IMAGE_FILE must be given\n");
@@ -173,6 +173,7 @@ inline EmuArgs parse_args(int argc, const char *argv[]) {
 
 
 Emulator::Emulator(int argc, const char *argv[]):
+  // initial list 
   dut_ptr(new VSimTop),
   cycles(0), trapCode(STATE_RUNNING)
 {
@@ -185,18 +186,10 @@ Emulator::Emulator(int argc, const char *argv[]):
   assert_init();
 
   // init remote-bitbang
+  enable_simjtag = args.enable_jtag;
   if (args.enable_jtag) {
     jtag = new remote_bitbang_t(23334);
   }
-  // init core
-  reset_ncycles(10);
-
-  // init ram
-  init_ram(args.image);
-#ifdef DEBUG_TILELINK
-  // init logger
-  init_logger(args.dump_tl);
-#endif
 
 #if VM_TRACE == 1
   enable_waveform = args.enable_waveform && !args.enable_fork;
@@ -212,6 +205,17 @@ Emulator::Emulator(int argc, const char *argv[]):
       tfp->open(waveform_filename(now));	// Open the dump file
     }
   }
+#endif
+
+  // init core
+  //printf("reset 10 cycle\n");
+  reset_ncycles(10);
+
+  // init ram
+  init_ram(args.image);
+#ifdef DEBUG_TILELINK
+  // init logger
+  init_logger(args.dump_tl);
 #endif
 
 #ifdef VM_SAVABLE
@@ -250,17 +254,21 @@ Emulator::~Emulator() {
 }
 
 inline void Emulator::reset_ncycles(size_t cycles) {
+  assert(dut_ptr != nullptr);
+  dut_ptr->reset = 1;
   for(int i = 0; i < cycles; i++) {
-    dut_ptr->reset = 1;
     dut_ptr->clock = 0;
     dut_ptr->eval();
     dut_ptr->clock = 1;
     dut_ptr->eval();
-    dut_ptr->reset = 0;
+    //printf("dut_ptr->reset = %d\n", dut_ptr->reset);
+    //printf("dut_ptr->clock = %d\n", dut_ptr->clock);
   }
+  dut_ptr->reset = 0;
 }
 
 inline void Emulator::single_cycle() {
+  //dut_ptr->io_test = 1;
   dut_ptr->clock = 0;
   dut_ptr->eval();
 
@@ -306,7 +314,6 @@ inline void Emulator::single_cycle() {
 }
 
 uint64_t Emulator::execute(uint64_t max_cycle, uint64_t max_instr) {
-
   difftest_init();
   init_device();
   if (args.enable_diff) {

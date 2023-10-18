@@ -4,6 +4,8 @@
 #include "remote_bitbang.h"
 
 remote_bitbang_t* jtag;
+bool enable_simjtag;
+
 extern "C" int jtag_tick
 (
  unsigned char * jtag_TCK,
@@ -13,7 +15,14 @@ extern "C" int jtag_tick
  unsigned char jtag_TDO
 )
 {
-  if (!jtag) {
+
+  if (!enable_simjtag) {
+    *jtag_TCK = 0;
+    *jtag_TRSTn = 1;
+    return 0;
+  }
+
+  if (!jtag && enable_simjtag) {
     // TODO: Pass in real port number
     jtag = new remote_bitbang_t(23334);
   }
