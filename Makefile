@@ -16,7 +16,7 @@
 
 SIM_TOP    ?= SimTop
 DESIGN_DIR ?= ..
-NUM_CORES  ?= 2
+NUM_CORES  ?= 1
 
 BUILD_DIR = $(DESIGN_DIR)/build
 SIM_TOP_V = $(BUILD_DIR)/$(SIM_TOP).v

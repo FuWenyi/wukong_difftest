@@ -40,8 +40,8 @@ public:
 
 #define NEMU_ENV_VARIABLE "NEMU_HOME"
 //#define NEMU_SO_FILENAME  "build/riscv64-nemu-interpreter-dual-so"
-//#define NEMU_SO_FILENAME  "build/riscv64-wukong-interpreter-so"
-#define NEMU_SO_FILENAME  "build/riscv64-wukong-interpreter-dual-so"
+#define NEMU_SO_FILENAME  "build/riscv64-wukong-interpreter-so"
+//#define NEMU_SO_FILENAME  "build/riscv64-wukong-interpreter-dual-so"
 class NemuProxy : public RefProxy {
 public:
   NemuProxy(int coreid);
